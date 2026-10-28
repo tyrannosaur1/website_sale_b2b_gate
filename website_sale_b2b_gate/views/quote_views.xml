@@ -10,6 +10,7 @@
                 <field name="name"/>
                 <field name="create_date" string="Received on"/>
                 <field name="email"/>
+                <field name="partner_id"/>
                 <field name="phone"/>
                 <field name="website_id" groups="website.group_multi_website"/>
                 <field name="state" widget="badge"/>
@@ -81,7 +82,7 @@
     <record id="website_quote_request_action" model="ir.actions.act_window">
         <field name="name">Quote Requests</field>
         <field name="res_model">website.quote.request</field>
-        <field name="view_mode">tree,form</field>
+        <field name="view_mode">list,form</field>
         <field name="help" type="html">
             <p class="o_view_nocontent_smiling_face">
                 No quote request yet
