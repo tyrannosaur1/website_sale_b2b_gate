@@ -69,23 +69,15 @@
          gate only ever answers "prices" or "no prices". -->
     <template id="product_cache_key_b2b_gate" name="B2B gate in the product page cache key"
               inherit_id="website_sale.product">
-        <xpath expr="//t[@t-cache='pricelist,product']" position="before">
+        <xpath expr="//t[starts-with(@t-cache, 'pricelist,product')]" position="before">
             <t t-set="b2b_gate" t-value="website._b2b_gate_hides_prices()"/>
         </xpath>
-        <xpath expr="//t[@t-cache='pricelist,product']" position="attributes">
+        <xpath expr="//t[starts-with(@t-cache, 'pricelist,product')]" position="attributes">
             <attribute name="t-cache" add="b2b_gate" separator=","/>
         </xpath>
     </template>
 
-    <template id="products_cache_key_b2b_gate" name="B2B gate in the grid cache key"
-              inherit_id="website_sale.products">
-        <xpath expr="//div[starts-with(@t-cache, 'pricelist,products')]" position="before">
-            <t t-set="b2b_gate" t-value="website._b2b_gate_hides_prices()"/>
-        </xpath>
-        <xpath expr="//div[starts-with(@t-cache, 'pricelist,products')]" position="attributes">
-            <attribute name="t-cache" add="b2b_gate" separator=","/>
-        </xpath>
-    </template>
+
 
     <template id="quote_form" name="Quote request form">
         <t t-call="website.layout">
