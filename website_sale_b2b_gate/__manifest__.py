@@ -20,6 +20,10 @@
             "website_sale_b2b_gate/static/src/css/b2b_gate.css",
         ],
     },
+    "images": [
+        "static/description/screenshot_1.png",
+        "static/description/screenshot_2.png",
+    ],
     "installable": True,
     "application": False,
     "price": 49.0,
