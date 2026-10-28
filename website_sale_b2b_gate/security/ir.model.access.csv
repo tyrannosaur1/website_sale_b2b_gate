@@ -1,5 +1,0 @@
-id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
-access_website_quote_request_user,website.quote.request user,model_website_quote_request,base.group_user,1,0,0,0
-access_website_quote_request_system,website.quote.request administrator,model_website_quote_request,base.group_system,1,1,1,1
-access_website_quote_request_line_user,website.quote.request.line user,model_website_quote_request_line,base.group_user,1,0,0,0
-access_website_quote_request_line_system,website.quote.request.line administrator,model_website_quote_request_line,base.group_system,1,1,1,1

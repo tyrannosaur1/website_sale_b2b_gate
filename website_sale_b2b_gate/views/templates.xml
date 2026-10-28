@@ -31,17 +31,6 @@
         </xpath>
     </template>
 
-    <!-- Core's "the product cannot be bought" block would sit next to the
-         quote block and offer a second, vaguer way to ask. It is removed only
-         for the products this module closes; a zero-priced product keeps the
-         block the shop gave it. -->
-    <template id="product_contact_b2b_gate" name="B2B gate on the contact block"
-              inherit_id="website_sale.product">
-        <xpath expr="//div[@id='contact_us_wrapper']" position="attributes">
-            <attribute name="t-if">not product._b2b_gate_blocks_cart()</attribute>
-        </xpath>
-    </template>
-
     <!-- ============================================================== -->
     <!-- Product tiles (/shop, search results)                           -->
     <!-- ============================================================== -->

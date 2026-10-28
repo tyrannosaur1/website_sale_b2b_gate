@@ -30,11 +30,13 @@ DEFAULT_GATE_MESSAGE = (
 def current_website(env):
     """Return the website the current call belongs to.
 
-    Inside a request this is the site the request was routed to. Outside one --
-    a shell, a cron, a test that never builds a request -- it falls back to the
-    first website, which is what the storefront would have used anyway.
+    20 removed ``website.get_current_website()``: the site a request was routed
+    to is on the environment, set by the website layer for every website
+    request. Outside a request -- a shell, a cron, a test that never builds a
+    request -- there is none, and the first website is the one the storefront
+    would have used anyway.
     """
-    website = env["website"].get_current_website()
+    website = env.website
     if not website:
         website = env["website"].search([], limit=1)
     return website

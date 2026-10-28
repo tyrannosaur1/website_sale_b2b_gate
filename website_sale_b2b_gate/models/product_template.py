@@ -117,7 +117,7 @@ class ProductTemplate(models.Model):
                 detail["mapping"].pop(key, None)
         return detail
 
-    def _b2b_gate_scrub_markup(self, data):
+    def _b2b_gate_scrub_jsonld(self, data):
         """Drop the offer from a JSON-LD payload.
 
         A product page publishes its price to search engines through this
@@ -133,8 +133,8 @@ class ProductTemplate(models.Model):
                 variant.pop("offers", None)
         return data
 
-    def _to_markup_data(self, website):
-        data = super()._to_markup_data(website)
+    def _prepare_jsonld_vals(self, **kwargs):
+        data = super()._prepare_jsonld_vals(**kwargs)
         if self._b2b_gate_hides_price():
-            return self._b2b_gate_scrub_markup(data)
+            return self._b2b_gate_scrub_jsonld(data)
         return data

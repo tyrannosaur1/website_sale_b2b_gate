@@ -4,9 +4,8 @@ import re
 
 from werkzeug.exceptions import Forbidden
 
-from odoo.exceptions import UserError
-
 from odoo import _, http
+from odoo.exceptions import UserError
 from odoo.http import request
 
 from odoo.addons.website_sale.controllers.cart import Cart as CartController
