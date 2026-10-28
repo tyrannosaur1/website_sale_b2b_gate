@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="website_quote_request_tree_view" model="ir.ui.view">
+        <field name="name">website.quote.request.tree</field>
+        <field name="model">website.quote.request</field>
+        <field name="arch" type="xml">
+            <tree string="Quote Requests"
+                  decoration-info="state == 'new'" decoration-success="state == 'done'">
+                <field name="name"/>
+                <field name="create_date" string="Received on"/>
+                <field name="email"/>
+                <field name="phone"/>
+                <field name="website_id" groups="website.group_multi_website"/>
+                <field name="state" widget="badge"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="website_quote_request_form_view" model="ir.ui.view">
+        <field name="name">website.quote.request.form</field>
+        <field name="model">website.quote.request</field>
+        <field name="arch" type="xml">
+            <form string="Quote Request">
+                <header>
+                    <field name="state" widget="statusbar"
+                           statusbar_visible="new,in_progress,done"/>
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <h1><field name="name" readonly="1"/></h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="email" widget="email"/>
+                            <field name="phone" widget="phone"/>
+                            <field name="partner_id"/>
+                        </group>
+                        <group>
+                            <field name="website_id" groups="website.group_multi_website"/>
+                            <field name="company_id" groups="base.group_multi_company"/>
+                            <field name="create_date" string="Received on"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Products" name="products">
+                            <field name="line_ids">
+                                <tree editable="bottom">
+                                    <field name="product_tmpl_id"/>
+                                    <field name="name"/>
+                                    <field name="quantity"/>
+                                </tree>
+                            </field>
+                        </page>
+                        <page string="Message" name="message">
+                            <field name="message" nolabel="1"/>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="website_quote_request_search_view" model="ir.ui.view">
+        <field name="name">website.quote.request.search</field>
+        <field name="model">website.quote.request</field>
+        <field name="arch" type="xml">
+            <search string="Quote Requests">
+                <field name="name"/>
+                <field name="email"/>
+                <field name="partner_id"/>
+                <filter name="filter_new" string="New" domain="[('state', '=', 'new')]"/>
+                <filter name="filter_done" string="Quoted" domain="[('state', '=', 'done')]"/>
+                <separator/>
+                <filter name="filter_website" string="Website"
+                        context="{'group_by': 'website_id'}"/>
+            </search>
+        </field>
+    </record>
+
+    <record id="website_quote_request_action" model="ir.actions.act_window">
+        <field name="name">Quote Requests</field>
+        <field name="res_model">website.quote.request</field>
+        <field name="view_mode">tree,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                No quote request yet
+            </p>
+            <p>
+                Requests sent from the shop's quote form land here.
+            </p>
+        </field>
+    </record>
+
+    <menuitem id="website_quote_request_menu"
+              name="Quote Requests"
+              parent="sale.sale_menu_root"
+              action="website_quote_request_action"
+              sequence="60"/>
+
+</odoo>

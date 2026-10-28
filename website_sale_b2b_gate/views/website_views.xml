@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="res_config_settings_view_form_b2b_gate" model="ir.ui.view">
+        <field name="name">res.config.settings.view.form.inherit.website.b2b.gate</field>
+        <field name="model">res.config.settings</field>
+        <field name="inherit_id" ref="website.res_config_settings_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//*[@id='website_login_documents']" position="after">
+                <div class="col-12 col-lg-6 o_setting_box" id="b2b_gate_setting">
+                    <div class="o_setting_left_pane">
+                        <field name="b2b_gate_enabled"/>
+                    </div>
+                    <div class="o_setting_right_pane">
+                        <label for="b2b_gate_enabled" string="B2B Price Gate"/>
+                        <div class="text-muted">
+                            Hide prices, and optionally the cart, from visitors who are not
+                            approved customers, and collect quote requests instead.
+                        </div>
+                        <div class="content-group" attrs="{'invisible': [('b2b_gate_enabled', '=', False)]}">
+                            <div class="row mt16">
+                                <label for="b2b_gate_mode" class="col-lg-3 o_light_label"/>
+                                <field name="b2b_gate_mode"/>
+                            </div>
+                            <div class="row mt8">
+                                <label for="b2b_gate_allowed_group_ids" class="col-lg-3 o_light_label"/>
+                                <field name="b2b_gate_allowed_group_ids" widget="many2many_tags"/>
+                            </div>
+                            <div class="row mt8">
+                                <label for="b2b_gate_quote_email" class="col-lg-3 o_light_label"/>
+                                <field name="b2b_gate_quote_email" placeholder="sales@example.com"/>
+                            </div>
+                            <div class="row mt8">
+                                <label for="b2b_gate_message" class="col-lg-3 o_light_label"/>
+                                <field name="b2b_gate_message" widget="html" options="{'collaborative': false}"/>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </xpath>
+        </field>
+    </record>
+
+</odoo>

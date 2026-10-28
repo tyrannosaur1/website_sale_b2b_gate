@@ -1,0 +1,145 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- ============================================================== -->
+    <!-- Product page                                                    -->
+    <!-- ============================================================== -->
+
+    <template id="product_price_b2b_gate" name="B2B gate on the product price"
+              inherit_id="website_sale.product_price">
+        <!-- The price block is removed from the document, not hidden with a
+             CSS class: a price that is still in the HTML is a price a visitor
+             can read in the page source, and the structured data (itemprop="price") below it
+             keeps feeding search engines. -->
+        <xpath expr="//div[@itemprop='offers']" position="attributes">
+            <attribute name="t-if">not product._b2b_gate_hides_price()</attribute>
+        </xpath>
+        <xpath expr="//div[@itemprop='offers']" position="after">
+            <div id="b2b_gate_block" class="b2b-gate-block mt-2 mb-3"
+                 t-if="product._b2b_gate_hides_price()">
+                <div class="b2b-gate-message" t-out="website._b2b_gate_message_html()"/>
+                <a id="b2b_gate_quote_link" class="btn btn-primary mt-2"
+                   t-att-href="'/b2b/quote?template_id=%s' % product.id">Request a quote</a>
+            </div>
+        </xpath>
+    </template>
+
+    <template id="product_cta_b2b_gate" name="B2B gate on the add to cart button"
+              inherit_id="website_sale.product">
+        <xpath expr="//div[@id='add_to_cart_wrap']" position="attributes">
+            <attribute name="t-if">not product._b2b_gate_blocks_cart()</attribute>
+        </xpath>
+    </template>
+
+    <!-- Core's "the product cannot be bought" block would sit next to the
+         quote block and offer a second, vaguer way to ask. It is removed only
+         for the products this module closes; a zero-priced product keeps the
+         block the shop gave it. -->
+    <template id="product_contact_b2b_gate" name="B2B gate on the contact block"
+              inherit_id="website_sale.product">
+        <xpath expr="//div[@id='contact_us_wrapper']" position="attributes">
+            <attribute name="t-if">not product._b2b_gate_blocks_cart()</attribute>
+        </xpath>
+    </template>
+
+    <!-- ============================================================== -->
+    <!-- Product tiles (/shop, search results)                           -->
+    <!-- ============================================================== -->
+
+    <template id="products_item_b2b_gate" name="B2B gate on the tile price"
+              inherit_id="website_sale.products_item">
+        <xpath expr="//div[@itemprop='offers']" position="attributes">
+            <attribute name="t-if">not product._b2b_gate_hides_price()</attribute>
+        </xpath>
+        <xpath expr="//div[@itemprop='offers']" position="after">
+            <span class="b2b-gate-tile-label" t-if="product._b2b_gate_hides_price()">Price on request</span>
+        </xpath>
+    </template>
+
+    <!-- ============================================================== -->
+    <!-- Render cache keys                                               -->
+    <!-- ============================================================== -->
+
+    <!-- 16 and 17 wrap the product page and the grid in t-cache keyed on
+         the pricelist and the products only, and that cache is shared by
+         every visitor. The gate makes the same product render differently
+         for an allowed customer and for a visitor, so the answer has to be
+         part of the key, otherwise the first visitor to fill the cache
+         decides what the next one sees. Two buckets, not one per user: the
+         gate only ever answers "prices" or "no prices". -->
+    <template id="product_cache_key_b2b_gate" name="B2B gate in the product page cache key"
+              inherit_id="website_sale.product">
+        <xpath expr="//t[@t-cache='pricelist,product']" position="before">
+            <t t-set="b2b_gate" t-value="website._b2b_gate_hides_prices()"/>
+        </xpath>
+        <xpath expr="//t[@t-cache='pricelist,product']" position="attributes">
+            <attribute name="t-cache" add="b2b_gate" separator=","/>
+        </xpath>
+    </template>
+
+    <template id="products_cache_key_b2b_gate" name="B2B gate in the grid cache key"
+              inherit_id="website_sale.products">
+        <xpath expr="//div[starts-with(@t-cache, 'pricelist,products')]" position="before">
+            <t t-set="b2b_gate" t-value="website._b2b_gate_hides_prices()"/>
+        </xpath>
+        <xpath expr="//div[starts-with(@t-cache, 'pricelist,products')]" position="attributes">
+            <attribute name="t-cache" add="b2b_gate" separator=","/>
+        </xpath>
+    </template>
+
+    <template id="quote_form" name="Quote request form">
+        <t t-call="website.layout">
+            <div id="wrap" class="o_b2b_gate_quote container my-5">
+                <h1>Request a quote</h1>
+                <p class="text-muted">
+                    Tell us how to reach you and we will send a written quotation.
+                </p>
+                <div class="alert alert-danger" t-if="error" t-out="error"/>
+                <form action="/b2b/quote/submit" method="post" class="col-lg-8">
+                    <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
+                    <input type="hidden" name="template_id" t-att-value="product.id or ''"/>
+                    <div class="mb-3" t-if="product">
+                        <label class="form-label" for="b2b_gate_quantity">Product</label>
+                        <div class="form-control-plaintext" t-out="product.name"/>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label" for="b2b_gate_email">Email</label>
+                        <input type="email" class="form-control" id="b2b_gate_email"
+                               name="email" required="required" t-att-value="email"/>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label" for="b2b_gate_phone">Phone</label>
+                        <input type="tel" class="form-control" id="b2b_gate_phone"
+                               name="phone" t-att-value="phone"/>
+                    </div>
+                    <div class="mb-3" t-if="product">
+                        <label class="form-label" for="b2b_gate_quantity">Quantity</label>
+                        <input type="number" class="form-control" id="b2b_gate_quantity"
+                               name="quantity" min="1" step="1" t-att-value="quantity"/>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label" for="b2b_gate_message">Message</label>
+                        <textarea class="form-control" id="b2b_gate_message"
+                                  name="message" rows="4" t-out="message"/>
+                    </div>
+                    <button type="submit" class="btn btn-primary" id="b2b_gate_submit">
+                        Send request
+                    </button>
+                </form>
+            </div>
+        </t>
+    </template>
+
+    <template id="quote_thanks" name="Quote request sent">
+        <t t-call="website.layout">
+            <div id="wrap" class="container my-5">
+                <h1>Thank you</h1>
+                <p>
+                    Your request has been sent. We will answer at the address you gave us.
+                </p>
+                <a class="btn btn-secondary" href="/shop">Back to the shop</a>
+            </div>
+        </t>
+    </template>
+
+</odoo>

@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="seq_website_quote_request" model="ir.sequence">
+        <field name="name">Website quote request</field>
+        <field name="code">website.quote.request</field>
+        <field name="prefix">QR/%(year)s/</field>
+        <field name="padding">4</field>
+        <field name="company_id" eval="False"/>
+    </record>
+
+    <record id="mail_template_quote_request" model="mail.template">
+        <field name="name">Website quote request</field>
+        <field name="model_id" ref="model_website_quote_request"/>
+        <field name="subject">{{ object.name }} - quote request</field>
+        <field name="email_from">{{ object.website_id.company_id.email or '' }}</field>
+        <field name="email_to">{{ object.website_id.b2b_gate_quote_email or object.website_id.company_id.email or '' }}</field>
+        <field name="lang">{{ object.partner_id.lang or object.website_id.default_lang_id.code or 'en_US' }}</field>
+        <field name="body_html" type="html">
+            <!-- Rendered with QWeb, not Jinja: since 15 the body of a mail
+                 template is a QWeb arch, so placeholders are t-out and the
+                 loops are t-foreach. A {{ ... }} here would be printed as it
+                 is written. -->
+            <div style="margin:0;padding:0;font-family:Arial,Helvetica,sans-serif;font-size:14px;color:#222">
+                <p>A quote request was sent from the website.</p>
+                <table cellpadding="4" cellspacing="0" style="border-collapse:collapse">
+                    <tr>
+                        <td style="font-weight:bold">Reference</td>
+                        <td><t t-out="object.name"/></td>
+                    </tr>
+                    <tr>
+                        <td style="font-weight:bold">Email</td>
+                        <td><t t-out="object.email"/></td>
+                    </tr>
+                    <tr>
+                        <td style="font-weight:bold">Phone</td>
+                        <td><t t-out="object.phone or ''"/></td>
+                    </tr>
+                </table>
+                <p style="font-weight:bold;margin-bottom:4px">Products</p>
+                <ul style="margin-top:0">
+                    <t t-foreach="object.line_ids" t-as="line">
+                        <li><t t-out="line.name"/> x <t t-out="line.quantity"/></li>
+                    </t>
+                </ul>
+                <p style="font-weight:bold;margin-bottom:4px">Message</p>
+                <p style="white-space:pre-line"><t t-out="object.message or ''"/></p>
+            </div>
+        </field>
+    </record>
+
+</odoo>

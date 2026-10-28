@@ -1,0 +1,47 @@
+<div style="max-width:880px;margin:0 auto;padding:8px 4px 24px;color:#2b2b2b;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;line-height:1.65"><div style="font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:#017E84;font-weight:600">Odoo &#183; Website / eCommerce</div><div style="font-size:38px;line-height:1.2;margin:10px 0 14px;font-weight:700">B2B Price Gate &amp; Quote Requests</div><div style="font-size:18px;color:#6b6b6b;margin:0 0 20px;max-width:660px">Keep prices and add-to-cart away from visitors who are not your customers, and turn them into quote requests you can answer.</div>
+
+<div style="font-size:22px;font-weight:700;margin:36px 0 6px">The problem it solves</div>
+<div style="font-size:14.5px;color:#3d3d3d">A wholesale shop publishes its catalogue, not its price list. Retail visitors should be able to read what you sell, and should not be able to buy at retail, but a visit that ends in nothing is worse than a visit that ends in an enquiry. This module draws the line where you want it and gives the visitor somewhere to go.</div>
+
+<div style="font-size:22px;font-weight:700;margin:36px 0 6px">Three modes, one switch</div>
+<div style="display:flex;flex-wrap:wrap;gap:16px;margin:16px 0 8px">
+<div style="flex:1 1 230px;min-width:210px;border:1px solid #e7e3e5;border-radius:10px;padding:20px;background:#fff"><div style="width:28px;height:3px;border-radius:2px;background:#714B67;margin-bottom:14px"></div><div style="font-size:15px;font-weight:600;margin:0 0 6px">Hide prices only</div><div style="font-size:13.5px;color:#6b6b6b">Prices disappear from the catalogue. The cart still works and shows its own prices, so a customer can order without a quote.</div></div>
+<div style="flex:1 1 230px;min-width:210px;border:1px solid #e7e3e5;border-radius:10px;padding:20px;background:#fff"><div style="width:28px;height:3px;border-radius:2px;background:#714B67;margin-bottom:14px"></div><div style="font-size:15px;font-weight:600;margin:0 0 6px">Hide prices and cart</div><div style="font-size:13.5px;color:#6b6b6b">Prices and add-to-cart are both closed. The add-to-cart routes refuse the product instead of answering 200, and checkout is refused for a cart that holds one.</div></div>
+<div style="flex:1 1 230px;min-width:210px;border:1px solid #e7e3e5;border-radius:10px;padding:20px;background:#fff"><div style="width:28px;height:3px;border-radius:2px;background:#714B67;margin-bottom:14px"></div><div style="font-size:15px;font-weight:600;margin:0 0 6px">Whole shop behind a login</div><div style="font-size:13.5px;color:#6b6b6b">Every /shop page sends an anonymous visitor to the login screen. Once signed in, the shop behaves normally.</div></div>
+</div>
+
+<div style="font-size:22px;font-weight:700;margin:36px 0 6px">Every place a price can escape</div>
+<div style="font-size:14.5px;color:#3d3d3d;margin-bottom:10px">Hiding the price block is the visible half. A module that stops there still answers the same question through five other doors, and the merchant believes the site is closed. Each of these is closed here, and each has a test that fails if it is reopened:</div>
+<div style="display:flex;flex-wrap:wrap;gap:0 28px">
+<div style="flex:1 1 300px;min-width:260px;font-size:14px;padding:8px 0"><span style="color:#017E84;font-weight:700;margin-right:9px">&#10003;</span>Product page: the price element is removed from the document, not hidden with a class</div>
+<div style="flex:1 1 300px;min-width:260px;font-size:14px;padding:8px 0"><span style="color:#017E84;font-weight:700;margin-right:9px">&#10003;</span>Shop list and search results: the tile shows "Price on request"</div>
+<div style="flex:1 1 300px;min-width:260px;font-size:14px;padding:8px 0"><span style="color:#017E84;font-weight:700;margin-right:9px">&#10003;</span>Search suggestions: the price line is dropped from the suggestion payload</div>
+<div style="flex:1 1 300px;min-width:260px;font-size:14px;padding:8px 0"><span style="color:#017E84;font-weight:700;margin-right:9px">&#10003;</span>Structured data: no offer and no price in the markup search engines read</div>
+<div style="flex:1 1 300px;min-width:260px;font-size:14px;padding:8px 0"><span style="color:#017E84;font-weight:700;margin-right:9px">&#10003;</span>Price filter: the slider is gone and ?min_price is inert instead of a search tool</div>
+<div style="flex:1 1 300px;min-width:260px;font-size:14px;padding:8px 0"><span style="color:#017E84;font-weight:700;margin-right:9px">&#10003;</span>Variant selector: the price is scrubbed from the answer its RPC route gives</div>
+</div>
+
+<div style="font-size:22px;font-weight:700;margin:36px 0 6px">Who is allowed to see what</div>
+<div style="font-size:14.5px;color:#3d3d3d">Choose the customer groups that see the shop as usual. A visitor who is not a member of one of them is gated; a signed-in customer who is not either is gated too. Internal users always see prices, so the merchant can check the site without a second account. Leave the group list empty to show prices to nobody but your own staff.</div>
+
+<div style="font-size:22px;font-weight:700;margin:36px 0 6px">Per product and per category</div>
+<div style="font-size:14.5px;color:#3d3d3d">A product can state its own policy: inherit, always show, always hide. Inheriting asks the public categories, then the website; a policy set on a parent category covers its whole subtree, so a catalogue of four hundred leaves is configured once. A product that sits in several categories follows the strictest one. The policy only applies while the gate is on -- a product marked "always hide" does not hide its price on a site that has no gate.</div>
+
+<div style="font-size:22px;font-weight:700;margin:36px 0 6px">Quote requests</div>
+<div style="font-size:14.5px;color:#3d3d3d">The product page offers a quote button in place of the price, and the form is served outside /shop so it is reachable even when the whole shop is behind a login. A submission creates a request with its product and quantity, and mails it to the address you configure. The same address sending twice within five minutes gets one request and one email: a double click is not a second lead. The requests are listed in Sales &#8250; Quote Requests with a status you can move as you answer them.</div>
+
+<div style="font-size:22px;font-weight:700;margin:36px 0 6px">Worth knowing</div>
+<div style="font-size:14.5px;color:#3d3d3d">
+<p style="margin:0 0 8px">In "hide prices only", the cart and the checkout keep their prices on purpose -- that mode exists so a customer can order without reading the catalogue. On a site where that is not acceptable, use "hide prices and cart".</p>
+<p style="margin:0 0 8px">A gated product's page stays reachable by its direct URL: the page is not hidden, only the price and the buy button. A visitor can always read the description and ask for a quotation.</p>
+<p style="margin:0">On 16 and 17 the shop caches the rendered product page and grid in memory, shared by every visitor. The module adds its answer to those cache keys, so a visitor and an allowed customer never receive each other's page.</p>
+</div>
+
+<div style="font-size:22px;font-weight:700;margin:36px 0 4px">Technical details</div>
+<table style="width:100%;border-collapse:collapse;font-size:14px"><tbody>
+<tr><td style="padding:10px 12px;border-bottom:1px solid #e7e3e5;background:#faf7f8;font-weight:600;color:#524a4f;width:34%">Depends on</td><td style="padding:10px 12px;border-bottom:1px solid #e7e3e5">website_sale, mail</td></tr>
+<tr><td style="padding:10px 12px;border-bottom:1px solid #e7e3e5;background:#faf7f8;font-weight:600;color:#524a4f">License</td><td style="padding:10px 12px;border-bottom:1px solid #e7e3e5">OPL-1</td></tr>
+<tr><td style="padding:10px 12px;border-bottom:1px solid #e7e3e5;background:#faf7f8;font-weight:600;color:#524a4f">Configure</td><td style="padding:10px 12px;border-bottom:1px solid #e7e3e5">Website &#8594; Configuration &#8594; Settings &#8594; B2B Price Gate</td></tr>
+<tr><td style="padding:10px 12px;border-bottom:1px solid #e7e3e5;background:#faf7f8;font-weight:600;color:#524a4f">Read the requests</td><td style="padding:10px 12px;border-bottom:1px solid #e7e3e5">Sales &#8594; Quote Requests</td></tr>
+</tbody></table>
+<div style="border-top:1px solid #e7e3e5;margin-top:44px;padding-top:14px;font-size:12.5px;color:#8a8189">website_sale_b2b_gate &#183; ModForge</div></div>

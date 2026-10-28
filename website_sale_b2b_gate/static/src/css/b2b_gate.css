@@ -1,0 +1,17 @@
+.b2b-gate-block {
+    border: 1px solid #e3e3e3;
+    border-radius: 6px;
+    padding: 12px 14px;
+    background: #fafafa;
+}
+.b2b-gate-message {
+    font-size: 0.95rem;
+}
+.b2b-gate-message p:last-child {
+    margin-bottom: 0;
+}
+.b2b-gate-tile-label {
+    display: inline-block;
+    font-weight: 600;
+    color: #6c757d;
+}
