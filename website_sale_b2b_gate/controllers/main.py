@@ -28,6 +28,17 @@ def _to_float(value, default=0.0):
         return default
 
 
+def _b2b_gate_order_blocked(order):
+    """Whether ``order`` holds a line the gate refuses to let through.
+
+    Every route that moves a cart towards payment asks this one question, so
+    the checkout page, the confirmation step and the payment step cannot
+    disagree about which carts are blocked.
+    """
+    return bool(order) and bool(order.order_line.filtered(
+        lambda line: line.product_id.product_tmpl_id._b2b_gate_blocks_cart()))
+
+
 class WebsiteSaleB2BGate(WebsiteSaleController):
     """The shop's own routes, refused for the visitors the gate covers."""
 
@@ -73,10 +84,59 @@ class WebsiteSaleB2BGate(WebsiteSaleController):
         checkout instead of when the line was written.
         """
         order = request.cart
-        if order and order.order_line.filtered(
-                lambda line: line.product_id.product_tmpl_id._b2b_gate_blocks_cart()):
+        if _b2b_gate_order_blocked(order):
             return request.redirect("/shop/cart?b2b_gate=checkout_blocked")
         return super().checkout(**post)
+
+    @http.route(["/shop/payment"], type="http", auth="public",
+                website=True, sitemap=False)
+    def shop_payment(self, **post):
+        """The payment step is a URL of its own, not a child of checkout.
+
+        A visitor who kept the address step in a tab, or who calls the payment
+        URL directly, would otherwise reach the payment form for a cart the
+        gate has closed. The answer is the checkout page's: back to the cart,
+        where the line can be removed or quoted.
+        """
+        order = request.cart
+        if _b2b_gate_order_blocked(order):
+            return request.redirect("/shop/cart?b2b_gate=payment_blocked")
+        return super().shop_payment(**post)
+
+    @http.route(["/shop/payment/validate"], type="http",
+                auth="public", website=True, sitemap=False)
+    def shop_payment_validate(self, sale_order_id=None, **post):
+        """Never confirm a gated cart, even when there is nothing to pay.
+
+        A zero-total cart -- a full discount, a free sample -- is confirmed by
+        this route without any transaction, which makes it the place where a
+        cart really becomes an order without a payment. A cart that already
+        has a transaction is left alone: the money is in flight, and refusing
+        here would take the payment and lose the order.
+        """
+        order = self._b2b_gate_order_for_validation(sale_order_id)
+        if (order and order.state in ("draft", "sent")
+                and not order.get_portal_last_transaction()
+                and _b2b_gate_order_blocked(order)):
+            return request.redirect("/shop/cart?b2b_gate=payment_blocked")
+        return super().shop_payment_validate(
+            sale_order_id=sale_order_id, **post)
+
+    def _b2b_gate_order_for_validation(self, sale_order_id=None):
+        """The order core is about to confirm, resolved the way core does.
+
+        The route takes the id from the query string or, failing that, from
+        the session, so both are read here and the guard sees the record the
+        call is about.
+        """
+        if sale_order_id:
+            return request.env["sale.order"].sudo().browse(
+                int(_to_float(sale_order_id))).exists()
+        order = request.cart
+        if not order and request.session.get("sale_last_order_id"):
+            order = request.env["sale.order"].sudo().browse(
+                request.session["sale_last_order_id"]).exists()
+        return order
 
 
 class WebsiteSaleB2BGateCart(CartController):
