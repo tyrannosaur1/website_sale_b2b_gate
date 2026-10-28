@@ -80,3 +80,20 @@ class TestGatePolicy(GateCase):
     def test_the_open_product_keeps_its_price_in_the_same_shop(self):
         self.assertTrue(self.as_public(self.product)._b2b_gate_hides_price())
         self.assertFalse(self.as_public(self.open_product)._b2b_gate_hides_price())
+
+    # -- price surfaces outside this module ---------------------------
+    def test_a_price_surface_gets_no_price_through_the_hook(self):
+        """A caller that prints its own price gets ``None``, not a figure."""
+        suggestion_price = self.as_public(self.product)._b2b_gate_public_price(
+            100.0)
+        detail = "" if suggestion_price is None else "%.2f" % suggestion_price
+        self.assertIsNone(suggestion_price)
+        self.assertEqual(detail, "")
+        # the same caller on a product the gate leaves alone, and with the
+        # gate switched off, still gets the number it computed
+        self.assertEqual(
+            self.as_public(self.open_product)._b2b_gate_public_price(250.0),
+            250.0)
+        self.gate_off()
+        self.assertEqual(
+            self.as_public(self.product)._b2b_gate_public_price(100.0), 100.0)
