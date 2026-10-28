@@ -56,37 +56,6 @@
         </xpath>
     </template>
 
-    <!-- ============================================================== -->
-    <!-- Render cache keys                                               -->
-    <!-- ============================================================== -->
-
-    <!-- 16 and 17 wrap the product page and the grid in t-cache keyed on
-         the pricelist and the products only, and that cache is shared by
-         every visitor. The gate makes the same product render differently
-         for an allowed customer and for a visitor, so the answer has to be
-         part of the key, otherwise the first visitor to fill the cache
-         decides what the next one sees. Two buckets, not one per user: the
-         gate only ever answers "prices" or "no prices". -->
-    <template id="product_cache_key_b2b_gate" name="B2B gate in the product page cache key"
-              inherit_id="website_sale.product">
-        <xpath expr="//t[@t-cache='pricelist,product']" position="before">
-            <t t-set="b2b_gate" t-value="website._b2b_gate_hides_prices()"/>
-        </xpath>
-        <xpath expr="//t[@t-cache='pricelist,product']" position="attributes">
-            <attribute name="t-cache" add="b2b_gate" separator=","/>
-        </xpath>
-    </template>
-
-    <template id="products_cache_key_b2b_gate" name="B2B gate in the grid cache key"
-              inherit_id="website_sale.products">
-        <xpath expr="//div[starts-with(@t-cache, 'pricelist,products')]" position="before">
-            <t t-set="b2b_gate" t-value="website._b2b_gate_hides_prices()"/>
-        </xpath>
-        <xpath expr="//div[starts-with(@t-cache, 'pricelist,products')]" position="attributes">
-            <attribute name="t-cache" add="b2b_gate" separator=","/>
-        </xpath>
-    </template>
-
     <template id="quote_form" name="Quote request form">
         <t t-call="website.layout">
             <div id="wrap" class="o_b2b_gate_quote container my-5">

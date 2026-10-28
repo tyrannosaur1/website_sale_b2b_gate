@@ -82,7 +82,12 @@ class WebsiteSaleB2BGate(WebsiteSaleController):
             return
         raise Forbidden(_("This product is only available as a quote request."))
 
-    @http.route()
+    # 18 turned /shop/checkout into a GET route, and `@http.route()` on an
+    # override no longer picked the inherited rule up: the merged controller
+    # kept an endpoint with no route at all and the shop answered 303 to
+    # /shop/address. The rule is spelled out from 18 on.
+    @http.route(["/shop/checkout"], type="http", auth="public",
+                methods=["GET"], website=True, sitemap=False)
     def checkout(self, **post):
         """A cart the gate has since closed cannot be paid for.
 
