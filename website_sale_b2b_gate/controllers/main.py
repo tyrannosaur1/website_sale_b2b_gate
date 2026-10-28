@@ -5,8 +5,10 @@ import re
 from werkzeug.exceptions import Forbidden
 
 from odoo import _, http
+from odoo.exceptions import UserError
 from odoo.http import request
 
+from odoo.addons.website_sale.controllers.cart import Cart as CartController
 from odoo.addons.website_sale.controllers.main import WebsiteSale as WebsiteSaleController
 
 from ..models.website import current_website
@@ -56,36 +58,11 @@ class WebsiteSaleB2BGate(WebsiteSaleController):
     # ------------------------------------------------------------------
     # Cart
     # ------------------------------------------------------------------
-    @http.route()
-    def cart_update(self, product_id, add_qty=1, set_qty=0, **kwargs):
-        self._b2b_gate_refuse_cart(product_id, add_qty, set_qty)
-        return super().cart_update(
-            product_id=product_id, add_qty=add_qty, set_qty=set_qty, **kwargs)
-
-    @http.route()
-    def cart_update_json(self, product_id, line_id=None, add_qty=None,
-                         set_qty=None, **kw):
-        self._b2b_gate_refuse_cart(product_id, add_qty, set_qty)
-        return super().cart_update_json(
-            product_id=product_id, line_id=line_id, add_qty=add_qty,
-            set_qty=set_qty, **kw)
-
-    def _b2b_gate_refuse_cart(self, product_id, add_qty=None, set_qty=None):
-        product = request.env["product.product"].browse(
-            int(_to_float(product_id))).exists()
-        if not product or not product.product_tmpl_id._b2b_gate_blocks_cart():
-            return
-        # Removing the line, or lowering its quantity, has to stay possible:
-        # otherwise a gated product already in a cart could never be taken
-        # out of it again.
-        if _to_float(set_qty) <= 0 and _to_float(add_qty) <= 0:
-            return
-        raise Forbidden(_("This product is only available as a quote request."))
-
-    # 18 turned /shop/checkout into a GET route, and `@http.route()` on an
-    # override no longer picked the inherited rule up: the merged controller
-    # kept an endpoint with no route at all and the shop answered 303 to
-    # /shop/address. The rule is spelled out from 18 on.
+    # From 19 the cart has its own controller and its add route already asks
+    # ``product._is_add_to_cart_allowed()`` before it writes a line; the model
+    # override answers False for a gated product, so the route refuses with a
+    # JSON-RPC error instead of adding it quietly. The quantity update of a
+    # line that is already in the cart still needs a guard here.
     @http.route(["/shop/checkout"], type="http", auth="public",
                 methods=["GET"], website=True, sitemap=False)
     def checkout(self, **post):
@@ -95,11 +72,28 @@ class WebsiteSaleB2BGate(WebsiteSaleController):
         while a visitor was shopping -- so the check is made on the way into
         checkout instead of when the line was written.
         """
-        order = request.website.sale_get_order()
+        order = request.cart
         if order and order.order_line.filtered(
                 lambda line: line.product_id.product_tmpl_id._b2b_gate_blocks_cart()):
             return request.redirect("/shop/cart?b2b_gate=checkout_blocked")
         return super().checkout(**post)
+
+
+class WebsiteSaleB2BGateCart(CartController):
+    """The cart controller of 19 and 20."""
+
+    @http.route(["/shop/cart/update"], type="jsonrpc", auth="public",
+                methods=["POST"], website=True, sitemap=False)
+    def update_cart(self, line_id, quantity, product_id=None, **kwargs):
+        order = request.cart
+        line = order and order.order_line.filtered(
+            lambda candidate: candidate.id == int(_to_float(line_id)))[:1]
+        if (line and _to_float(quantity) > 0
+                and line.product_id.product_tmpl_id._b2b_gate_blocks_cart()):
+            raise UserError(
+                _("This product is only available as a quote request."))
+        return super().update_cart(
+            line_id=line_id, quantity=quantity, product_id=product_id, **kwargs)
 
 
 class WebsiteSaleB2BQuote(http.Controller):

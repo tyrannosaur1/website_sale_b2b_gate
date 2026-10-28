@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 {
     "name": "B2B Price Gate & Quote Requests",
-    "version": "18.0.1.0.0",
+    "version": "19.0.1.0.0",
     "summary": "Hide prices and add-to-cart from selected visitors and turn them into quote requests",
     "author": "ModForge",
     "license": "OPL-1",

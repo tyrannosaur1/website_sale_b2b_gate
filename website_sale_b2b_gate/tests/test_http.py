@@ -183,25 +183,24 @@ class TestGateHttp(GateCase, HttpCase):
 
     # -- cart ----------------------------------------------------------
     def test_a_gated_product_cannot_enter_the_cart(self):
-        token = self._csrf("/b2b/quote")
-        response = self.url_open("/shop/cart/update", data={
-            "csrf_token": token,
+        payload = self._jsonrpc("/shop/cart/add", {
+            "product_template_id": self.product.id,
             "product_id": self.product.product_variant_id.id,
-            "add_qty": 1,
-        }, allow_redirects=False)
-        self.assertEqual(response.status_code, 403)
+            "quantity": 1,
+        }).json()
+        self.assertIn("error", payload, "the cart accepted a gated product")
         self.assertEqual(self.env["sale.order.line"].search_count(
             [("product_id", "=", self.product.product_variant_id.id)]), 0)
 
     def test_a_cart_that_the_gate_closed_cannot_be_paid(self):
         # the line predates the gate: add it while the shop is open ...
         self.gate_off()
-        token = self._csrf(self.product_url)
-        added = self.url_open("/shop/cart/update", data={
-            "csrf_token": token,
+        added = self._jsonrpc("/shop/cart/add", {
+            "product_template_id": self.product.id,
             "product_id": self.product.product_variant_id.id,
-            "add_qty": 1,
+            "quantity": 1,
         })
+        self.assertNotIn("error", added.json(), added.json())
         self.assertEqual(added.status_code, 200)
         self.assertEqual(self.env["sale.order.line"].search_count(
             [("product_id", "=", self.product.product_variant_id.id)]), 1)
@@ -212,3 +211,18 @@ class TestGateHttp(GateCase, HttpCase):
         self.assertEqual(blocked.status_code, 303)
         self.assertIn("/shop/cart", blocked.headers.get("Location", ""))
         self.assertIn("b2b_gate=checkout_blocked", blocked.headers.get("Location", ""))
+
+    # -- structured data ----------------------------------------------
+    # From 19 the price also leaves the page as a JSON-LD block, which search
+    # engines read long after the visit. Hiding the price block alone left it
+    # there, in a machine-readable form, for every crawler.
+    def test_the_json_ld_carries_no_offer(self):
+        page = self._get(self.product_url)
+        self.assertEqual(page.status_code, 200)
+        self.assertNotIn('"offers"', page.text)
+        self.assertNotIn('"priceCurrency"', page.text)
+
+    def test_the_json_ld_offer_is_back_when_the_gate_is_off(self):
+        self.gate_off()
+        page = self._get(self.product_url)
+        self.assertIn('"offers"', page.text)
