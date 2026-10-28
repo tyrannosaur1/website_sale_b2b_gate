@@ -142,4 +142,24 @@
         </t>
     </template>
 
+    <!-- ============================================================== -->
+    <!-- Cart                                                            -->
+    <!-- ============================================================== -->
+
+    <template id="cart_gate_notice" name="B2B gate notice in the cart"
+              inherit_id="website_sale.cart_lines">
+        <!-- The refusal is a redirect back here with a reason in the query
+             string; this is the sentence the visitor reads when they land.
+             Without it the cart simply reappears and the refusal looks like a
+             broken button. -->
+        <xpath expr="//table[@id='cart_products']" position="before">
+            <div id="b2b_gate_cart_notice" class="alert alert-warning"
+                 role="alert"
+                 t-if="request.httprequest.args.get('b2b_gate') in ('checkout_blocked', 'order_blocked', 'payment_blocked')">
+                This cart contains a product that is only available as a quote request.
+                Remove it to continue, or <a href="/b2b/quote">send us a quote request</a>.
+            </div>
+        </xpath>
+    </template>
+
 </odoo>
