@@ -9,12 +9,12 @@
               inherit_id="website_sale.product_price">
         <!-- The price block is removed from the document, not hidden with a
              CSS class: a price that is still in the HTML is a price a visitor
-             can read in the page source, and the structured data (itemprop="price") below it
+             can read in the page source, and the JSON-LD offer next to it below it
              keeps feeding search engines. -->
-        <xpath expr="//div[@itemprop='offers']" position="attributes">
+        <xpath expr="//div[@name='product_price']" position="attributes">
             <attribute name="t-if">not product._b2b_gate_hides_price()</attribute>
         </xpath>
-        <xpath expr="//div[@itemprop='offers']" position="after">
+        <xpath expr="//div[@name='product_price']" position="after">
             <div id="b2b_gate_block" class="b2b-gate-block mt-2 mb-3"
                  t-if="product._b2b_gate_hides_price()">
                 <div class="b2b-gate-message" t-out="website._b2b_gate_message_html()"/>
@@ -25,7 +25,7 @@
     </template>
 
     <template id="product_cta_b2b_gate" name="B2B gate on the add to cart button"
-              inherit_id="website_sale.product">
+              inherit_id="website_sale.cta_wrapper">
         <xpath expr="//div[@id='add_to_cart_wrap']" position="attributes">
             <attribute name="t-if">not product._b2b_gate_blocks_cart()</attribute>
         </xpath>
@@ -48,10 +48,10 @@
 
     <template id="products_item_b2b_gate" name="B2B gate on the tile price"
               inherit_id="website_sale.products_item">
-        <xpath expr="//div[@itemprop='offers']" position="attributes">
+        <xpath expr="//div[hasclass('product_price')]" position="attributes">
             <attribute name="t-if">not product._b2b_gate_hides_price()</attribute>
         </xpath>
-        <xpath expr="//div[@itemprop='offers']" position="after">
+        <xpath expr="//div[hasclass('product_price')]" position="after">
             <span class="b2b-gate-tile-label" t-if="product._b2b_gate_hides_price()">Price on request</span>
         </xpath>
     </template>

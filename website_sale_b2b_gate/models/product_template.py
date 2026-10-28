@@ -116,3 +116,25 @@ class ProductTemplate(models.Model):
             for key in ("detail", "detail_strike", "search_item_metadata"):
                 detail["mapping"].pop(key, None)
         return detail
+
+    def _b2b_gate_scrub_markup(self, data):
+        """Drop the offer from a JSON-LD payload.
+
+        A product page publishes its price to search engines through this
+        dictionary. Removing the price block from the HTML while leaving the
+        markup alone publishes the same price in a machine-readable form,
+        which is the leak that outlives the visit.
+        """
+        if not isinstance(data, dict):
+            return data
+        data.pop("offers", None)
+        for variant in data.get("hasVariant") or []:
+            if isinstance(variant, dict):
+                variant.pop("offers", None)
+        return data
+
+    def _to_markup_data(self, website):
+        data = super()._to_markup_data(website)
+        if self._b2b_gate_hides_price():
+            return self._b2b_gate_scrub_markup(data)
+        return data
