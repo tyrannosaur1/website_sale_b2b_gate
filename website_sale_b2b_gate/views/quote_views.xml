@@ -5,7 +5,7 @@
         <field name="name">website.quote.request.tree</field>
         <field name="model">website.quote.request</field>
         <field name="arch" type="xml">
-            <tree string="Quote Requests"
+            <list string="Quote Requests"
                   decoration-info="state == 'new'" decoration-success="state == 'done'">
                 <field name="name"/>
                 <field name="create_date" string="Received on"/>
@@ -13,7 +13,7 @@
                 <field name="phone"/>
                 <field name="website_id" groups="website.group_multi_website"/>
                 <field name="state" widget="badge"/>
-            </tree>
+            </list>
         </field>
     </record>
 
@@ -45,11 +45,11 @@
                     <notebook>
                         <page string="Products" name="products">
                             <field name="line_ids">
-                                <tree editable="bottom">
+                                <list editable="bottom">
                                     <field name="product_tmpl_id"/>
                                     <field name="name"/>
                                     <field name="quantity"/>
-                                </tree>
+                                </list>
                             </field>
                         </page>
                         <page string="Message" name="message">

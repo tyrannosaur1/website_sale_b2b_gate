@@ -8,9 +8,9 @@ PRICE_RE = re.compile(r"100[.,]00")
 
 #: Route the variant selector calls when an attribute changes. It answers
 #: with the same dictionary the product page renders, price included.
-VARIANT_ROUTE = "/sale/get_combination_info_website"
-#: 16 reads the pricelist from the request body of that route.
-VARIANT_NEEDS_PRICELIST = True
+VARIANT_ROUTE = "/website_sale/get_combination_info"
+#: 17 and later read the pricelist from the website, not the body.
+VARIANT_NEEDS_PRICELIST = False
 
 
 class GateCase(TransactionCase):
