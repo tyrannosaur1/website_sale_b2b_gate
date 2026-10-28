@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 """The rendered pages: what a visitor actually receives."""
 import json
+import odoo
 import re
 from unittest.mock import patch
 
@@ -226,3 +227,72 @@ class TestGateHttp(GateCase, HttpCase):
         self.gate_off()
         page = self._get(self.product_url)
         self.assertIn('"offers"', page.text)
+
+
+    # -- order routes --------------------------------------------------
+    # ``/shop/checkout`` is not the only door into payment: the shop also
+    # exposes the confirmation and payment steps as URLs of their own.
+    def _add_to_cart(self, product=None):
+        product = product or self.product
+        return self._jsonrpc("/shop/cart/add", {
+            "product_template_id": product.id,
+            "product_id": product.product_variant_id.id,
+            "quantity": 1,
+        })
+
+    def _gated_cart(self):
+        """A cart that holds a gated line, built while the shop was open."""
+        self.authenticate(None, None)
+        self.gate_off()
+        self._add_to_cart()
+        self.website.write({
+            "b2b_gate_enabled": True,
+            "b2b_gate_mode": "prices_and_cart",
+        })
+        order = self.env["sale.order"].search(
+            [("order_line.product_id", "=", self.product.product_variant_id.id)],
+            limit=1)
+        self.assertTrue(order, "the cart line was not created")
+        return order
+
+    def test_confirm_order_is_not_a_route_on_this_series(self):
+        """19 removed the confirmation step; there is nothing to guard."""
+        response = self._get("/shop/confirm_order", allow_redirects=False)
+        self.assertEqual(response.status_code, 404)
+
+    def test_the_payment_page_refuses_a_gated_cart(self):
+        self._gated_cart()
+        response = self._get("/shop/payment", allow_redirects=False)
+        self.assertEqual(response.status_code, 303)
+        self.assertIn("b2b_gate=payment_blocked",
+                      response.headers.get("Location", ""))
+
+    def test_payment_validation_cannot_confirm_a_gated_cart(self):
+        order = self._gated_cart()
+        order.order_line.write({"price_unit": 0.0})
+        order.invalidate_recordset()
+        self.assertEqual(order.amount_total, 0.0)
+        self.session["sale_order_id"] = order.id
+        self.session["sale_last_order_id"] = order.id
+        odoo.http.root.session_store.save(self.session)
+        response = self._get("/shop/payment/validate", allow_redirects=False)
+        self.assertEqual(response.status_code, 303)
+        self.assertIn("b2b_gate=payment_blocked",
+                      response.headers.get("Location", ""))
+        order.invalidate_recordset()
+        self.assertNotEqual(order.state, "sale")
+
+    def test_the_cart_explains_why_it_was_sent_back(self):
+        self._gated_cart()
+        page = self._get("/shop/cart?b2b_gate=order_blocked")
+        self.assertEqual(page.status_code, 200)
+        self.assertIn('id="b2b_gate_cart_notice"', page.text)
+        self.assertIn("Remove it to continue", page.text)
+
+    def test_an_open_cart_is_not_refused(self):
+        """Negative control: the guard is about the product, not the URL."""
+        self.gate_off()
+        self._add_to_cart(self.open_product)
+        response = self._get("/shop/payment", allow_redirects=False)
+        self.assertNotIn("b2b_gate",
+                         response.headers.get("Location", ""))

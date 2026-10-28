@@ -58,6 +58,23 @@ class ProductTemplate(models.Model):
             return False
         return self._b2b_gate_resolved_policy() != "visible"
 
+    def _b2b_gate_public_price(self, price):
+        """Return the price a price surface may publish, or ``None``.
+
+        This is the documented entry point for price surfaces outside this
+        module. ``website_search_autocomplete`` builds its suggestion lines
+        from its own price computation and never goes through
+        ``_get_combination_info``, so it never meets the scrub above. A
+        surface that is about to print a price calls this with the figure it
+        computed and renders its "price on request" form when the answer is
+        ``None``. Answering with the price and leaving the decision to the
+        caller is the leak this method exists to close.
+        """
+        self.ensure_one()
+        if self._b2b_gate_hides_price():
+            return None
+        return price
+
     # ------------------------------------------------------------------
     # Price surfaces
     # ------------------------------------------------------------------
