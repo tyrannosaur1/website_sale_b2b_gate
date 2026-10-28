@@ -10,6 +10,7 @@
                 <field name="name"/>
                 <field name="create_date" string="Received on"/>
                 <field name="email"/>
+                <field name="partner_id"/>
                 <field name="phone"/>
                 <field name="website_id" groups="website.group_multi_website"/>
                 <field name="state" widget="badge"/>
